@@ -3,14 +3,16 @@ import pandas as pd
 from datetime import datetime
 from prediction_pipeline import process_prediction  #  ML pipeline
 from train import accuracy
+from store_pipeline import save_predictions_to_db
+from store_pipeline import init_db
 
-
+init_db()
 def page():
     
 
     st.title("🧬 Disease Prediction Assistant")
     st.write("Enter patient details and symptoms below:")
-    st.write(f'model has{accuracy}% accuracy')
+    st.write(f'model has { accuracy}% accuracy')
 
     # --- Patient Basic Info ---
     st.header("👤 Patient Information")
@@ -78,6 +80,33 @@ def page():
         modified_data, result = process_prediction(file_path="user_input_ml.csv")
         st.dataframe(modified_data)
         st.success(f"✅ Pipeline executed successfully! Result: {result[0]}")
+
+        #Save Prediction to database
+        pred_data = {
+            #"Name": "Anonymous",  # Patients remain anonymous
+            "Age": age,
+            "Gender": gender,
+            "Fever": fever,
+            "Cough": cough,
+            "Headache": headache,
+            "Fatigue": fatigue,
+            "Nausea": nausea,
+            "Muscle_Pain": muscle_pain,
+            "Shortness_of_Breath": shortness_of_breath,
+            "Loss_of_Taste": loss_of_taste,
+            "Abdominal_Pain": abdominal_pain,
+            "Appetite_Loss": appetite_loss,
+            "Frequent_Urination": frequent_urination,
+            "Thirst_Level": thirst_level,
+            "Blurred_Vision": blurred_vision,
+            "Symptom_Duration_Days": symptom_duration,
+            "Severity": severity,
+            "Predicted_Disease": result[0]
+        }
+
+        save_predictions_to_db(pred_data)    
+
+        
     except Exception as e:
         st.error(f"❌ Error in pipeline: {e}")
 

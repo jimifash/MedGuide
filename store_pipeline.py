@@ -2,15 +2,16 @@ import sqlite3
 from datetime import datetime
 import pandas as pd
 
+
 # --- DATABASE INITIALIZATION ---
-def init_db(db_name="phc_bookings.db"):
+def init_db(db_name="phc_store.db"):
     """
     Initializes the SQLite database and creates the bookings table if it doesn't exist.
     """
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
 
-    cursor.execute("""
+    cursor.executescript("""
     CREATE TABLE IF NOT EXISTS bookings (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         Name TEXT,
@@ -38,14 +39,37 @@ def init_db(db_name="phc_bookings.db"):
         Women_Status TEXT,
         Other_Notes TEXT,
         Submitted_On DATE
-    )
-    """)
+    );
+    CREATE TABLE IF NOT EXISTS predictions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    Name TEXT,
+    Age INTEGER,
+    Gender TEXT,
+    Fever REAL,
+    Cough INTEGER,
+    Headache INTEGER,
+    Fatigue INTEGER,
+    Nausea INTEGER,
+    Muscle_Pain INTEGER,
+    Shortness_of_Breath INTEGER,
+    Loss_of_Taste INTEGER,
+    Abdominal_Pain INTEGER,
+    Appetite_Loss INTEGER,
+    Frequent_Urination INTEGER,
+    Thirst_Level INTEGER,
+    Blurred_Vision INTEGER,
+    Symptom_Duration_Days INTEGER,
+    Severity INTEGER,
+    Predicted_Disease TEXT,
+    Predicted_On DATE
+);
+""")
     conn.commit()
     conn.close()
 
 
 # --- SAVE FORM DATA ---
-def save_booking_to_db(data, db_name="phc_bookings.db"):
+def save_booking_to_db(data, db_name="phc_store.db"):
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
 
@@ -67,10 +91,26 @@ def save_booking_to_db(data, db_name="phc_bookings.db"):
     conn.commit()
     conn.close()
 
+def save_predictions_to_db(pred_data, db_name = "phc_store.db"):
+
+    conn = sqlite3.connect(db_name)
+    cursor = conn.cursor()
+
+    if "Predicted_On" not in pred_data:
+        pred_data["Predicted_On"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    columns = ", ".join(pred_data.keys())
+    placeholders = ", ".join(["?"] * len(pred_data))
+    values = tuple(pred_data.values())
+    
+    cursor.execute(f"INSERT INTO predictions ({columns}) VALUES ({placeholders})", values)
+    conn.commit()
+    conn.close()
+
 
 
 # --- FETCH ALL BOOKINGS ---
-def get_all_bookings(db_name="phc_bookings.db"):
+def get_all_bookings(db_name="phc_store.db"):
     """
     Retrieves all booking records from the SQLite database as a pandas DataFrame.
     """
@@ -79,9 +119,16 @@ def get_all_bookings(db_name="phc_bookings.db"):
     conn.close()
     return df
 
+# --- FETCH ALL PREDICTIONS ---
+def get_all_predictions(db_name="phc_store.db"):
+    conn = sqlite3.connect(db_name)
+    df = pd.read_sql_query("SELECT * FROM predictions ORDER BY id DESC", conn)
+    conn.close()
+    return df
+
 
 # --- DELETE RECORD (admin feature) ---
-def delete_booking(record_id, db_name="phc_bookings.db"):
+def delete_booking(record_id, db_name="phc_store.db"):
     """
     Deletes a booking record by ID.
     """

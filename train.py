@@ -62,4 +62,5 @@ def train_store_model(df, preprocessor, save_path="disease_predictor.pkl"):
 df = pd.read_csv("realistic_patient_symptom_features.csv")
 preprocessor = preprocess(df)
 accuracy = train_store_model(df, preprocessor)
+accuracy = accuracy*100
 print("Training completed with accuracy:", accuracy)

@@ -4,7 +4,7 @@ from translate_input import trans_text
 from language_codes import LANGUAGES
 from email_s import send_email
 import pandas as pd
-from booking_pipeline import init_db, save_booking_to_db
+from store_pipeline import init_db, save_booking_to_db
 
 # Initialize DB once
 init_db()
@@ -101,7 +101,7 @@ st.markdown("""
 # --- HERO SECTION ---
 st.markdown(f"""
 <div class="hero">
-    <h1>{T("Health Assist")}</h1>
+    <h1>{T("MEDGuide")}</h1>
     <p>{T("Your Smart Companion for Quick First Aid, Health Tips, and Bookings")}</p>
 </div>
 """, unsafe_allow_html=True)

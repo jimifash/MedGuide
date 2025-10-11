@@ -1,2 +1,2 @@
 ,Age,Gender,Fever,Cough,Headache,Fatigue,Nausea,Muscle_Pain,Shortness_of_Breath,Loss_of_Taste,Abdominal_Pain,Appetite_Loss,Frequent_Urination,Thirst_Level,Blurred_Vision,Symptom_Duration_Days,Severity(1-5)
-0,8,Female,39.10000000000006,0,1,2,4,2,1,0,0,4,0,0,0,18,4
+0,8,Female,39.1,0,1,2,4,2,1,0,0,4,0,0,0,18,4
