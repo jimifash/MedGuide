@@ -1,12 +1,12 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-from prediction_pipeline import process_prediction  # your custom ML or saving pipeline
+from prediction_pipeline import process_prediction  #  ML pipeline
 from train import accuracy
 
 
 def page():
-    st.set_page_config(page_title="Disease Prediction", layout="centered")
+    
 
     st.title("🧬 Disease Prediction Assistant")
     st.write("Enter patient details and symptoms below:")
@@ -71,10 +71,13 @@ def page():
         df = pd.DataFrame(data)
         st.write("### 🧾 Data Preview")
         st.dataframe(df)
+        df.to_csv("user_input_ml.csv")
 
         # Send to ML or database pipeline
-        try:
-            result = process_prediction(df)
-            st.success(f"✅ Pipeline executed successfully! Result: {result}")
-        except Exception as e:
-            st.error(f"❌ Error in pipeline: {e}")
+    try:
+        modified_data, result = process_prediction(file_path="user_input_ml.csv")
+        st.dataframe(modified_data)
+        st.success(f"✅ Pipeline executed successfully! Result: {result[0]}")
+    except Exception as e:
+        st.error(f"❌ Error in pipeline: {e}")
+

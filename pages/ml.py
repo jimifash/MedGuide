@@ -32,5 +32,4 @@ if not st.session_state.authenticated:
         else:
             st.error("❌ Invalid code. Please try again.")
 else:
-    train()
     page()

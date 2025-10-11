@@ -2,7 +2,7 @@ import joblib
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score
 import pandas as pd
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.compose import ColumnTransformer
@@ -17,7 +17,6 @@ def preprocess(df):
         'Blurred_Vision', 'Severity(1-5)'
     ]
 
-    # --- Define preprocessors ---
     categorical_transformer = OneHotEncoder(drop='first', sparse_output=False)
     numeric_transformer = StandardScaler()
 
@@ -29,40 +28,38 @@ def preprocess(df):
         ]
     )
 
-    # --- Fit and transform training data ---
-    X = df.drop(columns=['Patient_ID'])
-    X_preprocessed = preprocessor.fit_transform(X)
+    # ⚙️ Fit only on features (exclude Disease + ID)
+    X = df.drop(columns=['Patient_ID', 'Disease'])
+    preprocessor.fit(X)
 
-    # --- Save the preprocessor ---
     joblib.dump(preprocessor, "preprocessor.pkl")
+    return preprocessor
 
 
-def train_store_model(df, preprocessors, save_path="disease_predictor.pkl"):
+def train_store_model(df, preprocessor, save_path="disease_predictor.pkl"):
 
     X = df.drop(columns=['Patient_ID', 'Disease'])
     y = df['Disease']
-    
-    model = Pipeline(steps=[
-    ('preprocessor', preprocessor),
-    ('classifier', RandomForestClassifier(
-        n_estimators=200, random_state=42, class_weight='balanced'
-        ))
-    ])
 
-    X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42, stratify=y
+    X_transformed = preprocessor.transform(X)
+
+    model = RandomForestClassifier(
+        n_estimators=200, random_state=42, class_weight='balanced'
     )
 
+    X_train, X_test, y_train, y_test = train_test_split(
+        X_transformed, y, test_size=0.2, random_state=42, stratify=y
+    )
 
     model.fit(X_train, y_train)
     joblib.dump(model, save_path)
 
-    y_pred = model.predict(X_test)
-    acc = accuracy_score(y_test, y_pred)
-
+    acc = accuracy_score(y_test, model.predict(X_test))
     return acc
 
-df = pd.read_csv("realistic_patient_symptom_features")
-preprocess(df)
-preprocessors = joblib.load("preprocessor.pkl")
-accuracy = train_store_model(df,preprocessors)
+
+# --- RUN ---
+df = pd.read_csv("realistic_patient_symptom_features.csv")
+preprocessor = preprocess(df)
+accuracy = train_store_model(df, preprocessor)
+print("Training completed with accuracy:", accuracy)
