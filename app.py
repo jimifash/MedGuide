@@ -144,6 +144,8 @@ with st.form("booking_form"):
     with col1:
         name = st.text_input(T("Full Name"))
         email = st.text_input(T("Email Address"))
+        phone_number = st.text_input(T("Phone number"))
+        gender = st.selectbox(T("Gender"),[T("Male"),T("Female")])
     with col2:
         date = st.date_input(T("Preferred Date"), min_value=datetime.now().date())
         time = st.time_input(T("Preferred Time"))
@@ -151,7 +153,12 @@ with st.form("booking_form"):
     st.markdown("---")
     st.subheader(T("Health Information"))
 
-    q1 = st.text_input(T("1. What health problem or symptom are you currently experiencing?"))
+    q1 = st.multiselect(T("1. What health problem or symptom are you currently experiencing?"),
+    [
+    T("Fever"),T("Cough"),T("Headache"),T("Fatigue"),T("Sore throat"),T("Shortness of breath"),T("Chest pain"),
+    T("Runny nose"),T("Loss of taste or smell"),T("Muscle or joint pain"),T("Nausea or vomiting"),T("Abdominal pain"),T("Diarrhea"),
+    T("Dizziness"),T("Skin rash"),T("Chills or shivering"),T("Loss of appetite"),T("Swelling"),
+    T("Frequent urination"),T("Blurred vision")])
     q2 = st.text_input(T("2. When did the problem start?"))
     q3 = st.selectbox(T("3. Has the condition been getting better, worse, or staying the same?"),
                       [T("Better"), T("Worse"), T("Same")])

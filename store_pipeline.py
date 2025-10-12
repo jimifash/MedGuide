@@ -23,55 +23,57 @@ def init_supabase_db():
     create_queries = """
     CREATE TABLE IF NOT EXISTS bookings (
         id SERIAL PRIMARY KEY,
-        Name TEXT,
-        Email TEXT,
-        Preferred_Date DATE,
-        Preferred_Time TEXT,
-        Problem TEXT,
-        Start_date TEXT,
-        Current_condition_after_start TEXT,
-        Severity INTEGER,
-        Occured_Before TEXT,
-        Medication_taken TEXT,
-        Fever TEXT,
-        Pain TEXT,
-        Cough_Cold_Breath_Shortness TEXT,
-        Change_in_appetite_weight TEXT,
-        Chronic_Conditions TEXT,
-        Current_Medication TEXT,
-        Allergies TEXT,
-        Past_Hospitalization_Surgery TEXT,
-        Smoke_or_Alcohol TEXT,
-        Sleep_Hours INTEGER,
-        Exercise_Frequency TEXT,
-        Stress_Fatigue TEXT,
-        Women_Status TEXT,
-        Other_Notes TEXT,
-        Submitted_On TIMESTAMP
+        name TEXT,
+        email TEXT,
+        gender TEXT,
+        phone_number VARCHAR(25),
+        preferred_date DATE,
+        preferred_time TEXT,
+        problem TEXT,
+        start_date TEXT,
+        current_condition_after_start TEXT,
+        severity INTEGER,
+        occured_before TEXT,
+        medication_taken TEXT,
+        fever TEXT,
+        pain TEXT,
+        cough_cold_breath_shortness TEXT,
+        change_in_appetite_weight TEXT,
+        chronic_conditions TEXT,
+        current_medication TEXT,
+        allergies TEXT,
+        past_hospitalization_surgery TEXT,
+        smoke_or_alcohol TEXT,
+        sleep_hours INTEGER,
+        exercise_frequency TEXT,
+        stress_fatigue TEXT,
+        women_status TEXT,
+        other_notes TEXT,
+        submitted_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
     CREATE TABLE IF NOT EXISTS predictions (
         id SERIAL PRIMARY KEY,
-        Name TEXT,
-        Age INTEGER,
-        Gender TEXT,
-        Fever REAL,
-        Cough INTEGER,
-        Headache INTEGER,
-        Fatigue INTEGER,
-        Nausea INTEGER,
-        Muscle_Pain INTEGER,
-        Shortness_of_Breath INTEGER,
-        Loss_of_Taste INTEGER,
-        Abdominal_Pain INTEGER,
-        Appetite_Loss INTEGER,
-        Frequent_Urination INTEGER,
-        Thirst_Level INTEGER,
-        Blurred_Vision INTEGER,
-        Symptom_Duration_Days INTEGER,
-        Severity INTEGER,
-        Predicted_Disease TEXT,
-        Predicted_On TIMESTAMP
+        name TEXT,
+        age INTEGER,
+        gender TEXT,
+        fever REAL,
+        cough INTEGER,
+        headache INTEGER,
+        fatigue INTEGER,
+        nausea INTEGER,
+        muscle_pain INTEGER,
+        shortness_of_breath INTEGER,
+        loss_of_taste INTEGER,
+        abdominal_pain INTEGER,
+        appetite_loss INTEGER,
+        frequent_urination INTEGER,
+        thirst_level INTEGER,
+        blurred_vision INTEGER,
+        symptom_duration_days INTEGER,
+        severity INTEGER,
+        predicted_disease TEXT,
+        predicted_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
     """
     with engine.begin() as conn:
@@ -82,11 +84,23 @@ def init_supabase_db():
 # --- SAVE FORM DATA ---
 def save_booking_to_db(data):
     """Save booking info to Supabase PostgreSQL."""
+    
+    # Flatten any single-item lists (e.g., from Streamlit widgets)
+    for key, value in data.items():
+        if isinstance(value, list):
+            data[key] = ", ".join(map(str, value))  # Join multiple selections into a string
+
+    # Standardize column names
     data = {k.replace(" ", "_").replace("/", "_"): v for k, v in data.items()}
 
-    if "Submitted_On" not in data:
-        data["Submitted_On"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    # Add submission timestamp if missing
+    data.pop("Submitted_On", None)
+    data.pop("submitted_on", None)
 
+    # Add clean lowercase version
+    data["submitted_on"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    # Build SQL query
     columns = ", ".join(data.keys())
     placeholders = ", ".join([f":{col}" for col in data.keys()])
     query = text(f"INSERT INTO bookings ({columns}) VALUES ({placeholders})")
@@ -100,8 +114,10 @@ def save_booking_to_db(data):
 # --- SAVE PREDICTIONS ---
 def save_predictions_to_db(pred_data):
     """Save prediction results to Supabase PostgreSQL database."""
-    if "Predicted_On" not in pred_data:
-        pred_data["Predicted_On"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    # Add prediction timestamp if missing
+    if "predicted_on" not in pred_data:
+        pred_data["predicted_on"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     columns = ", ".join(pred_data.keys())
     placeholders = ", ".join([f":{col}" for col in pred_data.keys()])
@@ -124,7 +140,7 @@ def get_all_bookings():
 
 # --- FETCH ALL PREDICTIONS ---
 def get_all_predictions():
-    """Retrieve all predictions from Supabase."""
+    """Fetch all predictions from Supabase PostgreSQL."""
     query = "SELECT * FROM predictions ORDER BY id DESC"
     with engine.connect() as conn:
         df = pd.read_sql_query(query, conn)
