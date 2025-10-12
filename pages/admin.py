@@ -21,8 +21,8 @@ predictions = get_all_predictions()
 
 predictions.rename(columns={"predicted_disease": "Predicted_Disease"}, inplace=True)
 
-st.write("Predictions columns:", predictions.columns.tolist())
-st.write("Predictions rows:", predictions.shape[0])
+# st.write("Predictions columns:", predictions.columns.tolist())
+# st.write("Predictions rows:", predictions.shape[0])
 
 
 # --- TABS FOR NAVIGATION ---
