@@ -7,6 +7,7 @@ from store_pipeline import get_all_bookings, get_all_predictions
 st.set_page_config(page_title="Admin Dashboard", layout="wide")
 
 st.title("🔒 Admin Dashboard")
+st.write("Use: ADMIN999 as the password for this DEMO")
 
 # --- ACCESS CONTROL ---
 access_code = st.text_input("Enter access code:", type="password")

@@ -10,6 +10,7 @@ st.set_page_config(page_title="Doctor Access", layout="centered")
 ACCESS_CODES = {
     "ADMIN999": "System Admin"
 }
+st.write("Use: ADMIN999 as the password for this DEMO")
 
 # --- SESSION STATE FOR LOGIN PERSISTENCE ---
 if "authenticated" not in st.session_state:
