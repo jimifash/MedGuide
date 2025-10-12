@@ -1,19 +1,28 @@
-import sqlite3
+import os
 from datetime import datetime
 import pandas as pd
+from sqlalchemy import create_engine, text
+from dotenv import load_dotenv
+
+# --- Load environment variables ---
+load_dotenv()
+
+# --- Initialize Supabase Engine ---
+DATABASE_URL = os.getenv("SUPABASE_URL")
+
+if not DATABASE_URL:
+    raise ValueError("❌ SUPABASE_URL not found in .env file!")
+
+# Use SSL for Supabase PostgreSQL
+engine = create_engine(DATABASE_URL, connect_args={"sslmode": "require"})
 
 
-# --- DATABASE INITIALIZATION ---
-def init_db(db_name="phc_store.db"):
-    """
-    Initializes the SQLite database and creates the bookings table if it doesn't exist.
-    """
-    conn = sqlite3.connect(db_name)
-    cursor = conn.cursor()
-
-    cursor.executescript("""
+# --- CREATE TABLES IN SUPABASE ---
+def init_supabase_db():
+    """Creates tables in Supabase PostgreSQL if they don't exist."""
+    create_queries = """
     CREATE TABLE IF NOT EXISTS bookings (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         Name TEXT,
         Email TEXT,
         Preferred_Date DATE,
@@ -38,102 +47,99 @@ def init_db(db_name="phc_store.db"):
         Stress_Fatigue TEXT,
         Women_Status TEXT,
         Other_Notes TEXT,
-        Submitted_On DATE
+        Submitted_On TIMESTAMP
     );
+
     CREATE TABLE IF NOT EXISTS predictions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    Name TEXT,
-    Age INTEGER,
-    Gender TEXT,
-    Fever REAL,
-    Cough INTEGER,
-    Headache INTEGER,
-    Fatigue INTEGER,
-    Nausea INTEGER,
-    Muscle_Pain INTEGER,
-    Shortness_of_Breath INTEGER,
-    Loss_of_Taste INTEGER,
-    Abdominal_Pain INTEGER,
-    Appetite_Loss INTEGER,
-    Frequent_Urination INTEGER,
-    Thirst_Level INTEGER,
-    Blurred_Vision INTEGER,
-    Symptom_Duration_Days INTEGER,
-    Severity INTEGER,
-    Predicted_Disease TEXT,
-    Predicted_On DATE
-);
-""")
-    conn.commit()
-    conn.close()
+        id SERIAL PRIMARY KEY,
+        Name TEXT,
+        Age INTEGER,
+        Gender TEXT,
+        Fever REAL,
+        Cough INTEGER,
+        Headache INTEGER,
+        Fatigue INTEGER,
+        Nausea INTEGER,
+        Muscle_Pain INTEGER,
+        Shortness_of_Breath INTEGER,
+        Loss_of_Taste INTEGER,
+        Abdominal_Pain INTEGER,
+        Appetite_Loss INTEGER,
+        Frequent_Urination INTEGER,
+        Thirst_Level INTEGER,
+        Blurred_Vision INTEGER,
+        Symptom_Duration_Days INTEGER,
+        Severity INTEGER,
+        Predicted_Disease TEXT,
+        Predicted_On TIMESTAMP
+    );
+    """
+    with engine.begin() as conn:
+        conn.execute(text(create_queries))
+    print("✅ Supabase tables initialized!")
 
 
 # --- SAVE FORM DATA ---
-def save_booking_to_db(data, db_name="phc_store.db"):
-    conn = sqlite3.connect(db_name)
-    cursor = conn.cursor()
-
-    # Ensure columns match DB schema
+def save_booking_to_db(data):
+    """Save booking info to Supabase PostgreSQL."""
     data = {k.replace(" ", "_").replace("/", "_"): v for k, v in data.items()}
 
-    # Ensure Submitted_On exists
     if "Submitted_On" not in data:
         data["Submitted_On"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     columns = ", ".join(data.keys())
-    placeholders = ", ".join(["?"] * len(data))
-    values = list(data.values())
+    placeholders = ", ".join([f":{col}" for col in data.keys()])
+    query = text(f"INSERT INTO bookings ({columns}) VALUES ({placeholders})")
 
-    query = f"INSERT INTO bookings ({columns}) VALUES ({placeholders})"
-    values = tuple(str(v) for v in values)
-    cursor.execute(query, values)
+    with engine.begin() as conn:
+        conn.execute(query, data)
 
-    conn.commit()
-    conn.close()
+    print("✅ Booking saved successfully!")
 
-def save_predictions_to_db(pred_data, db_name = "phc_store.db"):
 
-    conn = sqlite3.connect(db_name)
-    cursor = conn.cursor()
-
+# --- SAVE PREDICTIONS ---
+def save_predictions_to_db(pred_data):
+    """Save prediction results to Supabase PostgreSQL database."""
     if "Predicted_On" not in pred_data:
         pred_data["Predicted_On"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     columns = ", ".join(pred_data.keys())
-    placeholders = ", ".join(["?"] * len(pred_data))
-    values = tuple(pred_data.values())
-    
-    cursor.execute(f"INSERT INTO predictions ({columns}) VALUES ({placeholders})", values)
-    conn.commit()
-    conn.close()
+    placeholders = ", ".join([f":{col}" for col in pred_data.keys()])
+    query = text(f"INSERT INTO predictions ({columns}) VALUES ({placeholders})")
 
+    with engine.begin() as conn:
+        conn.execute(query, pred_data)
+
+    print("✅ Prediction saved successfully!")
 
 
 # --- FETCH ALL BOOKINGS ---
-def get_all_bookings(db_name="phc_store.db"):
-    """
-    Retrieves all booking records from the SQLite database as a pandas DataFrame.
-    """
-    conn = sqlite3.connect(db_name)
-    df = pd.read_sql_query("SELECT * FROM bookings ORDER BY id DESC", conn)
-    conn.close()
+def get_all_bookings():
+    """Retrieve all bookings from Supabase."""
+    query = "SELECT * FROM bookings ORDER BY id DESC"
+    with engine.connect() as conn:
+        df = pd.read_sql_query(query, conn)
     return df
+
 
 # --- FETCH ALL PREDICTIONS ---
-def get_all_predictions(db_name="phc_store.db"):
-    conn = sqlite3.connect(db_name)
-    df = pd.read_sql_query("SELECT * FROM predictions ORDER BY id DESC", conn)
-    conn.close()
+def get_all_predictions():
+    """Retrieve all predictions from Supabase."""
+    query = "SELECT * FROM predictions ORDER BY id DESC"
+    with engine.connect() as conn:
+        df = pd.read_sql_query(query, conn)
     return df
 
 
-# --- DELETE RECORD (admin feature) ---
-def delete_booking(record_id, db_name="phc_store.db"):
-    """
-    Deletes a booking record by ID.
-    """
-    conn = sqlite3.connect(db_name)
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM bookings WHERE id = ?", (record_id,))
-    conn.commit()
-    conn.close()
+# --- DELETE A BOOKING ---
+def delete_booking(record_id):
+    """Deletes a booking record by ID."""
+    query = text("DELETE FROM bookings WHERE id = :id")
+    with engine.begin() as conn:
+        conn.execute(query, {"id": record_id})
+    print(f"🗑️ Booking with ID {record_id} deleted.")
+
+
+# --- Run this manually once to ensure tables exist ---
+if __name__ == "__main__":
+    init_supabase_db()
