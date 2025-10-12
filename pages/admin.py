@@ -116,17 +116,17 @@ with tab3:
 
 
         # 4️⃣ Gender Distribution
-        with col4:
-            if "gender" in df_filtered.columns:
-                gender_count = df_filtered["gender"].value_counts().reset_index()
-                gender_count.columns = ["Gender", "Count"]
-                fig4 = px.pie(
-                    gender_count, names="Gender", values="Count",
-                    title="🚻 Gender Distribution", hole=0.4
-                )
-                st.plotly_chart(fig4, use_container_width=True)
-            else:
-                st.info("No gender column found in dataset.")
+        # with col4:
+        #     if "gender" in df_filtered.columns:
+        #         gender_count = df_filtered["gender"].value_counts().reset_index()
+        #         gender_count.columns = ["Gender", "Count"]
+        #         fig4 = px.pie(
+        #             gender_count, names="Gender", values="Count",
+        #             title="🚻 Gender Distribution", hole=0.4
+        #         )
+        #         st.plotly_chart(fig4, use_container_width=True)
+        #     else:
+        #         st.info("No gender column found in dataset.")
 
         # --- SUMMARY ---
         st.markdown("---")
@@ -181,18 +181,18 @@ with tab4:
             ]
 
         # 👩 GENDER FILTER
-        with colf2:
-            gender_options = ["All"]
-            if "gender" in df_book.columns:
-                unique_genders = sorted([g for g in df_book["gender"].dropna().unique().tolist() if g])
-                gender_options += unique_genders
-            selected_gender = st.selectbox("Filter by Gender", gender_options)
+        # with colf2:
+        #     gender_options = ["All"]
+        #     if "gender" in df_book.columns:
+        #         unique_genders = sorted([g for g in df_book["gender"].dropna().unique().tolist() if g])
+        #         gender_options += unique_genders
+        #     selected_gender = st.selectbox("Filter by Gender", gender_options)
 
-            if selected_gender != "All":
-                df_book = df_book[df_book["gender"] == selected_gender]
+            # if selected_gender != "All":
+            #     df_book = df_book[df_book["gender"] == selected_gender]
 
         # 💨 ALLERGY / LIFESTYLE FILTER
-        with colf3:
+        with colf2:
             filter_type = st.radio("Filter By", ["Allergies", "Smoking/Alcohol"], horizontal=True)
 
             if filter_type == "Allergies" and "allergies" in df_book.columns:
@@ -230,26 +230,26 @@ with tab4:
         st.markdown("---")
 
         # --- GENDER DISTRIBUTION VISUALIZATION ---
-        st.markdown("### 🚻 Gender Distribution Among Bookings")
-        if "gender" in df_book.columns:
-            gender_count = (
-                df_book["gender"]
-                .value_counts()
-                .reset_index()
-                .rename(columns={"index": "Gender", "gender": "Count"})
-            )
+        # st.markdown("### 🚻 Gender Distribution Among Bookings")
+        # if "gender" in df_book.columns:
+        #     gender_count = (
+        #         df_book["gender"]
+        #         .value_counts()
+        #         .reset_index()
+        #         .rename(columns={"index": "Gender", "gender": "Count"})
+        #     )
 
-            fig_gender = px.pie(
-                gender_count,
-                names="Gender",
-                values="Count",
-                title="Gender Distribution of Patients",
-                color_discrete_sequence=px.colors.qualitative.Pastel,
-                hole=0.3
-            )
-            st.plotly_chart(fig_gender, use_container_width=True)
-        else:
-            st.info("No 'gender' column found in booking records.")
+        #     fig_gender = px.pie(
+        #         gender_count,
+        #         names="Gender",
+        #         values="Count",
+        #         title="Gender Distribution of Patients",
+        #         color_discrete_sequence=px.colors.qualitative.Pastel,
+        #         hole=0.3
+        #     )
+        #     st.plotly_chart(fig_gender, use_container_width=True)
+        # else:
+        #     st.info("No 'gender' column found in booking records.")
 
 
 
@@ -258,8 +258,8 @@ with tab4:
             (df_book["submitted_on"].dt.date >= start_date)
             & (df_book["submitted_on"].dt.date <= end_date)
         ]
-        if selected_gender != "All":
-            df_book = df_book[df_book["gender"] == selected_gender]
+        # if selected_gender != "All":
+        #     df_book = df_book[df_book["gender"] == selected_gender]
 
         st.markdown("---")
 
