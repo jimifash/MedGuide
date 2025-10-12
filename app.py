@@ -4,10 +4,10 @@ from translate_input import trans_text
 from language_codes import LANGUAGES
 from email_s import send_email
 import pandas as pd
-from store_pipeline import init_db, save_booking_to_db
+from store_pipeline import init_supabase_db, save_booking_to_db
 
 # Initialize DB once
-init_db()
+init_supabase_db()
 
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="MedGuide", layout="wide")

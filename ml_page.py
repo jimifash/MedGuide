@@ -4,9 +4,9 @@ from datetime import datetime
 from prediction_pipeline import process_prediction  #  ML pipeline
 from train import accuracy
 from store_pipeline import save_predictions_to_db
-from store_pipeline import init_db
+from store_pipeline import init_supabase_db
 
-init_db()
+init_supabase_db
 def page():
     
 
