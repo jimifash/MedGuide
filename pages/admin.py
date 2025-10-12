@@ -57,50 +57,82 @@ with tab3:
     if predictions.empty:
         st.warning("No prediction data available.")
     else:
+        # --- COPY DATA ---
+        df_filtered = predictions.copy()
+
         # --- FILTERS ---
         with st.expander("🔍 Filters"):
-            disease_filter = st.multiselect(
-                "Select Diseases", options=predictions["Predicted_Disease"].unique(), default=None
-            )
+            colf1, colf2, colf3 = st.columns(3)
 
-        df_filtered = predictions.copy()
+            with colf1:
+                disease_filter = st.multiselect(
+                    "Filter by Disease:",
+                    options=df_filtered["Predicted_Disease"].dropna().unique(),
+                    default=None
+                )
+
+        # --- APPLY FILTERS ---
         if disease_filter:
             df_filtered = df_filtered[df_filtered["Predicted_Disease"].isin(disease_filter)]
 
         # --- VISUALS ---
         col1, col2 = st.columns(2)
 
+        # 1️⃣ Disease Distribution
         with col1:
-            st.markdown("**Disease Frequency**")
-            disease_count = df_filtered["Predicted_Disease"].value_counts().reset_index()
-            disease_count.columns = ["Predicted_Disease", "Count"]
-            fig = px.bar(
-                disease_count, x="Predicted_Disease", y="Count",
-                color="Predicted_Disease", title="Disease Distribution",
-                text_auto=True
-            )
-            st.plotly_chart(fig, use_container_width=True)
+            if "Predicted_Disease" in df_filtered.columns:
+                disease_count = df_filtered["Predicted_Disease"].value_counts().reset_index()
+                disease_count.columns = ["Predicted_Disease", "Count"]
+                fig1 = px.bar(
+                    disease_count, x="Predicted_Disease", y="Count",
+                    color="Predicted_Disease", title="🧬 Disease Distribution", text_auto=True
+                )
+                st.plotly_chart(fig1, use_container_width=True)
+            else:
+                st.info("No disease data found.")
 
+        # 2️⃣ Symptom Count Visualization
         with col2:
-            st.markdown("**Prediction Confidence / Probabilities (if available)**")
-            numeric_cols = df_filtered.select_dtypes("number").columns
-            if len(numeric_cols) > 0:
-                fig2 = px.box(df_filtered, y=numeric_cols[0], color="Predicted_Disease",
-                              title=f"Distribution of {numeric_cols[0]}")
+            symptom_cols = [
+                "fever", "cough", "headache", "fatigue", "nausea", "muscle_pain",
+                "shortness_of_breath", "loss_of_taste", "abdominal_pain",
+                "appetite_loss", "frequent_urination", "thirst_level", "blurred_vision"
+            ]
+            available_symptoms = [c for c in symptom_cols if c in df_filtered.columns]
+
+            if available_symptoms:
+                symptom_sums = df_filtered[available_symptoms].sum().reset_index()
+                symptom_sums.columns = ["Symptom", "Count"]
+                fig2 = px.bar(
+                    symptom_sums, x="Symptom", y="Count", color="Symptom",
+                    title="💊 Symptom Frequency Across Patients", text_auto=True
+                )
                 st.plotly_chart(fig2, use_container_width=True)
             else:
-                st.info("No numeric columns found for confidence visualization.")
+                st.info("No symptom columns found in dataset.")
 
-        # --- TREND OVER TIME ---
-        if "timestamp" in df_filtered.columns:
-            df_filtered["timestamp"] = pd.to_datetime(df_filtered["timestamp"], errors='coerce')
-            fig3 = px.line(df_filtered, x="timestamp", y=df_filtered.columns[0],
-                           color="Disease", title="Prediction Trends Over Time")
-            st.plotly_chart(fig3, use_container_width=True)
+        # --- SECOND ROW ---
+        col3, col4, col5 = st.columns(3)
 
+
+        # 4️⃣ Gender Distribution
+        with col4:
+            if "gender" in df_filtered.columns:
+                gender_count = df_filtered["gender"].value_counts().reset_index()
+                gender_count.columns = ["Gender", "Count"]
+                fig4 = px.pie(
+                    gender_count, names="Gender", values="Count",
+                    title="🚻 Gender Distribution", hole=0.4
+                )
+                st.plotly_chart(fig4, use_container_width=True)
+            else:
+                st.info("No gender column found in dataset.")
+
+        # --- SUMMARY ---
         st.markdown("---")
-        st.markdown("### Summary Statistics")
+        st.markdown("### 📈 Summary Statistics")
         st.write(df_filtered.describe())
+
 
 # 🗓️ Booking Insights & Patient Trends
 with tab4:
