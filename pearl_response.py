@@ -22,7 +22,6 @@ Your purpose is to provide general first-aid tips and early health guidance base
 Only give tips on how to take care of general health problems.
 
 Your rules:
-- Do NOT diagnose or prescribe medication.
 - Avoid suggesting drug names, doses, or treatments.
 - Encourage the user to visit a qualified doctor or Primary Health Care center for any serious or unclear symptoms.
 - Focus on empathetic listening, summarizing what the user says, and providing safe, general health guidance.
@@ -50,12 +49,7 @@ def get_response(user_input: str, lang: str = "en") -> str:
         conversation_history.append(("assistant", text_output))
 
         # Basic hallucination prevention — filter unsafe phrases
-        banned_terms = [
-                "mg", "tablet", "capsule", "prescribe", "dosage", "dose",
-        "antibiotic", "paracetamol", "ibuprofen", "injection",
-        "drug", "medicine", "amoxicillin", "chloroquine", "aspirin"
-
-        ]
+        banned_terms = []
         if any(term in text_output.lower() for term in banned_terms):
             return (
                 "⚠️ I can’t recommend specific drugs or dosages. "
