@@ -7,7 +7,7 @@ from store_pipeline import init_supabase_db
 import pandas as pd
 
 
-init_supabase_db
+
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="Doctor Access", layout="centered")
 
@@ -38,6 +38,7 @@ if not st.session_state.authenticated:
         else:
             st.error("❌ Invalid code. Please try again.")
 else:
+    init_supabase_db
     st.title("🧬 Disease Prediction Assistant")
     st.write("Enter patient details and symptoms below:")
     st.write(f'model has { accuracy}% accuracy')
