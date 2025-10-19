@@ -38,7 +38,7 @@ if not st.session_state.authenticated:
         else:
             st.error("❌ Invalid code. Please try again.")
 else:
-    init_supabase_db
+    init_supabase_db()
     st.title("🧬 Disease Prediction Assistant")
     st.write("Enter patient details and symptoms below:")
     st.write(f'model has { accuracy}% accuracy')
